@@ -7,11 +7,6 @@ const int minDist = 10;
 const byte ledPins[] = {2, 3, 4};
 
 const int playTimeMs = 20000;
-const int timeOfOnePartMs = 2000;
-const int countOfParts = floor(playTimeMs / timeOfOnePartMs);
-const int maxScoreOfPart = 6;
-const int scoreCoeff1 = timeOfOnePartMs / maxScoreOfPart;
-const int scoreCoeff2 = -(scoreCoeff1 * timeOfOnePartMs);
 
 const int displaysCount = 1;
 const int dataPin = 12;
@@ -30,7 +25,7 @@ void setup()
 
 void loop() {
   int score = 0;
-  for (int i = 0; i < countOfParts; i++) {
+  while (millis() < playTimeMs) {
     int nextSensorPin = random(3);
     score += playPart(nextSensorPin);
   }
@@ -49,19 +44,15 @@ void showScoreOnDisplay(int score) {
 }
 
 int playPart(int pin) {
-  float startTimeMs = millis();
   switchLed(pin, 255);
-  while (readDist(pin) > minDist || millis() - startTimeMs < timeOfOnePartMs) {
+  while (readDist(pin) > minDist && millis() < playTimeMs) {
     delay(20);
   }
-  int score = getScoreByTime(millis() - startTimeMs);
-  Serial.println(score);
   switchLed(pin, 0);
-  return score;
-}
-
-int getScoreByTime(int time) {
-  return floor(scoreCoeff1 * time + scoreCoeff2);
+  if (millis() > playTimeMs) {
+    return 0;
+  }
+  return 1;
 }
 
 void switchLed(int pin, int value) {
